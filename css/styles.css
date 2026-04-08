@@ -969,6 +969,147 @@ table { border-collapse: collapse; }
   text-align: center;
 }
 
+/* ────────────── ZONA D'UPLOAD JSON ────────────── */
+
+.upload-zone {
+  border: 2px dashed var(--c-moss);
+  border-radius: var(--r-xl);
+  background: var(--c-warm-wh);
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+  transition: border-color var(--tr-normal), background var(--tr-normal), box-shadow var(--tr-normal);
+}
+
+.upload-zone--drag {
+  border-color: var(--c-amber);
+  background: var(--c-sun);
+  box-shadow: 0 0 0 4px rgba(212,134,15,0.15);
+}
+
+.upload-zone--loaded {
+  border-color: var(--c-moss);
+  border-style: solid;
+  background: var(--c-mint-lt);
+}
+
+.upload-icon { font-size: 2.4rem; display: block; margin-bottom: var(--sp-3); }
+
+.upload-title {
+  font-family: var(--ff-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--c-forest);
+  margin-bottom: var(--sp-2);
+}
+
+.upload-hint {
+  font-size: var(--fs-sm);
+  color: var(--c-slate);
+  margin-bottom: var(--sp-5);
+}
+
+.upload-hint code {
+  background: var(--c-stone);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  font-family: monospace;
+  color: var(--c-forest);
+}
+
+.btn-upload {
+  background: var(--c-forest);
+  color: #fff;
+  border: none;
+  padding: var(--sp-3) var(--sp-6);
+  border-radius: var(--r-full);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tr-fast), transform var(--tr-fast);
+}
+
+.btn-upload:hover { background: var(--c-forest-2); transform: translateY(-1px); }
+
+.btn-upload--reset {
+  background: transparent;
+  color: var(--c-slate);
+  border: 1.5px solid var(--c-stone);
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
+.btn-upload--reset:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+.upload-success { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+
+.upload-success-title {
+  font-family: var(--ff-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--c-forest);
+}
+
+.upload-success-date { font-size: var(--fs-sm); color: var(--c-slate); }
+
+.upload-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+  margin: var(--sp-2) 0;
+}
+
+.upload-tag {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-full);
+}
+
+.upload-tag--real { background: var(--c-mint-lt); color: var(--c-forest); border: 1px solid var(--c-sage); }
+.upload-tag--info { background: var(--c-sun);     color: #92400e;          border: 1px solid #fcd34d; }
+
+.data-source-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  background: linear-gradient(135deg, rgba(61,122,85,0.08), rgba(168,213,181,0.15));
+  border: 1px solid var(--c-sage);
+  border-left: 4px solid var(--c-moss);
+  border-radius: var(--r-md);
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-sm);
+  color: var(--c-dark);
+  line-height: 1.6;
+  margin-bottom: var(--sp-8);
+}
+
+.data-source-banner span:first-child { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+
+/* Colors dels inputs segons origen */
+.field-input--real {
+  border-color: var(--c-moss) !important;
+  background: rgba(61,122,85,0.05) !important;
+  color: var(--c-forest) !important;
+  font-weight: 600;
+}
+
+.field-input--estimat {
+  border-color: var(--c-amber) !important;
+  background: rgba(212,134,15,0.05) !important;
+  color: #7c3f00 !important;
+  font-weight: 600;
+}
+
+.field-input--calculat {
+  border-color: #3b82f6 !important;
+  background: rgba(59,130,246,0.05) !important;
+  color: #1e40af !important;
+  font-weight: 600;
+}
+
 /* ────────────── PEU ────────────── */
 .site-footer {
   background: var(--c-dark);
