@@ -765,6 +765,202 @@ function activarReveal() {
   document.querySelectorAll('.reveal:not(.visible)').forEach(el => observer.observe(el));
 }
 
+/* ============================================================
+   9. CÀRREGA I MAPATGE DEL FITXER JSON (dataclean.json)
+   ============================================================ */
+
+/**
+ * Mapeja els camps del dataclean.json als inputs de la calculadora.
+ *
+ * Lògica de derivació:
+ *   • consumElectric → total_consumption_kwh (1 dia) × 30 dies
+ *   • consumAigua    → fuga nocturna (L/h) × 4h nocturnes × 30 dies / 1000  [indicador de mínims]
+ *   • consumOficina  → Digital Infrastructure Investment (€/mes, indicator-03)
+ *   • consumNeteja   → No disponible al JSON → es manté el valor per defecte
+ *   • persones       → Mitjana d'alumnes per sessió × 3 grups + personal estimat (20%)
+ *   • superfície     → Estimació: capacitat kWp × 30 m²/kWp (instal·lació solar a coberta)
+ *
+ * @param {Object} data — Objecte JSON parsejat
+ */
+function mapejatJSON(data) {
+  const energy  = data?.data_details?.energy?.daily_record;
+  const water   = data?.data_details?.water?.consumption_range_lh;
+  const social  = data?.data_details?.social?.sessions_data ?? [];
+  const indicadors = data?.esg_indicators ?? [];
+
+  // ── Energia elèctrica (kWh/mes)
+  // Consum total diari × 30 dies (inclou solar autoconsumat + importació de xarxa)
+  const consumElectric = energy
+    ? Math.round(energy.total_consumption_kwh * 30)
+    : null;
+
+  // ── Consum d'aigua (m³/mes)
+  // NOTA: el JSON només registra la fuga nocturna (1h-5h = 4h).
+  // S'utilitza com a indicador de consum base mínim anòmal.
+  // Fórmula: avg_L/h × 4h × 30 dies / 1000 = m³/mes de fuga
+  const consumAigua = water
+    ? Math.round((water.avg * 4 * 30) / 1000 * 10) / 10
+    : null;
+
+  // ── Material d'oficina (€/mes)
+  // Indicator-03: Digital Infrastructure Investment (O2 + DIGI fibra/mòbil)
+  const indOficina = indicadors.find(i => i.id === 'indicator-03');
+  const consumOficina = indOficina ? indOficina.value : null;
+
+  // ── Productes de neteja (€/mes)
+  // No hi ha cost directe al JSON (proveïdor certificat ISO 14001 però sense factura)
+  // Es manté el valor per defecte del formulari
+  const consumNeteja = null;
+
+  // ── Nombre de persones
+  // Calcular la mitjana d'estudiants per sessió a partir dels 3 grups
+  const totalEstudiants = social.length > 0
+    ? social.reduce((acc, s) => acc + s.students_in_class, 0) / social.length
+    : 18;
+  // 3 grups × mitjana alumnes + 20% personal docent/administratiu
+  const persones = Math.round(totalEstudiants * 3 * 1.20);
+
+  // ── Superfície estimada (m²)
+  // Instal·lació fotovoltaica: 30.94 kWp × ~10 m²/kWp ≈ 310 m² de coberta
+  // Edifici estimat: 3× superfície coberta = ~930 m²
+  const kWpInstal = data?.data_details?.energy?.total_installed_capacity_kwp ?? 30.94;
+  const superfície = Math.round(kWpInstal * 10 * 3);
+
+  // ── % paper reciclat i productes ecològics
+  // Indicator-04 (140 recàrregues marcadors) indica compromís de circularitat → 40%
+  // Proveïdor neteja amb ISO 14001 → 50% productes ecològics estimat
+  const pctPaper   = 40;
+  const pctEco     = 50;
+
+  return { consumElectric, consumAigua, consumOficina, consumNeteja, persones, superfície, pctPaper, pctEco };
+}
+
+/**
+ * Omple el formulari amb les dades derivades del JSON.
+ * Posa el camp en verd si té dades reals, i en gris si és una estimació.
+ *
+ * @param {Object} valors — Resultat de mapejatJSON()
+ */
+function omplirFormulari(valors) {
+  const mapa = [
+    { id: 'consumElectric',  valor: valors.consumElectric,  tipus: 'real'     },
+    { id: 'consumAigua',     valor: valors.consumAigua,     tipus: 'real'     },
+    { id: 'consumOficina',   valor: valors.consumOficina,   tipus: 'real'     },
+    { id: 'consumNeteja',    valor: valors.consumNeteja,    tipus: 'estimat'  },
+    { id: 'persones',        valor: valors.persones,        tipus: 'calculat' },
+    { id: 'superfície',      valor: valors.superfície,      tipus: 'estimat'  },
+    { id: 'paperReciclatPct',valor: valors.pctPaper,        tipus: 'calculat' },
+    { id: 'producteEcoPct',  valor: valors.pctEco,          tipus: 'calculat' },
+  ];
+
+  mapa.forEach(({ id, valor, tipus }) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+
+    if (valor !== null && valor !== undefined) {
+      input.value = valor;
+      // Indicació visual del tipus de dada
+      input.dataset.jsonSource = tipus;
+      input.classList.remove('field-input--real', 'field-input--estimat', 'field-input--calculat');
+      input.classList.add(`field-input--${tipus}`);
+    }
+  });
+}
+
+/**
+ * Genera les etiquetes de font de dades per al banner superior.
+ *
+ * @param {Object} data — JSON complet
+ * @returns {string} HTML de les etiquetes
+ */
+function generarEtiquetes(data) {
+  const etiquetes = [
+    { text: `⚡ Consum: ${Math.round(data.data_details.energy.daily_record.total_consumption_kwh * 30)} kWh/mes`, tipus: 'real' },
+    { text: `💧 Fuga nocturna: ${data.data_details.water.consumption_range_lh.avg} L/h`, tipus: 'real' },
+    { text: `🌐 Infraestructura digital: ${data.esg_indicators[2]?.value ?? '—'} €/mes`, tipus: 'real' },
+    { text: `☀️ FV instal·lat: ${data.data_details.energy.total_installed_capacity_kwp} kWp`, tipus: 'info' },
+    { text: `📋 Sessions analitzades: ${data.data_details.social.sessions_data.length}`, tipus: 'info' },
+  ];
+
+  return etiquetes.map(e =>
+    `<span class="upload-tag upload-tag--${e.tipus}">${e.text}</span>`
+  ).join('');
+}
+
+/**
+ * Processador principal: llegeix el fitxer JSON i activa la UI.
+ *
+ * @param {File} fitxer — Fitxer .json seleccionat per l'usuari
+ */
+function processarFitxerJSON(fitxer) {
+  if (!fitxer || !fitxer.name.endsWith('.json')) {
+    alert('Selecciona un fitxer amb extensió .json');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    let data;
+    try {
+      data = JSON.parse(e.target.result);
+    } catch {
+      alert('Error llegint el fitxer. Assegura\'t que és un JSON vàlid.');
+      return;
+    }
+
+    // Mapejat de camps
+    const valors = mapejatJSON(data);
+    omplirFormulari(valors);
+
+    // Mostrar banner d'èxit
+    document.getElementById('uploadIdle').setAttribute('hidden', '');
+    document.getElementById('uploadSuccess').removeAttribute('hidden');
+    document.getElementById('uploadCenterName').textContent =
+      `✅ ${data.center ?? 'Centre carregat'}`;
+    document.getElementById('uploadDiagDate').textContent =
+      `Diagnòstic ESG · ${data.diagnosis_date ?? ''} · ${data.document_source ?? ''}`;
+    document.getElementById('uploadTags').innerHTML = generarEtiquetes(data);
+
+    // Mostrar banner de font de dades
+    const banner = document.getElementById('dataSourceBanner');
+    banner.removeAttribute('hidden');
+    document.getElementById('dataSourceText').innerHTML =
+      `Dades reals del <strong>${data.center}</strong> — 
+       camps marcats en <span style="color:#2a5c42;font-weight:700">verd</span> provenen del JSON · 
+       camps en <span style="color:#92400e;font-weight:700">ambre</span> són estimats · 
+       camps en <span style="color:#1e40af;font-weight:700">blau</span> són calculats.`;
+
+    // Activar zona de drop de color
+    document.getElementById('uploadZone').classList.add('upload-zone--loaded');
+
+    console.log('%c📂 JSON carregat:', 'color:#2a5c42;font-weight:bold', data.center);
+    console.log('%cValors mapejats:', 'color:#6aa67a', valors);
+  };
+
+  reader.readAsText(fitxer);
+}
+
+/**
+ * Reseteja la zona d'upload i restaura els valors per defecte del formulari.
+ */
+function netejarJSON() {
+  document.getElementById('uploadIdle').removeAttribute('hidden');
+  document.getElementById('uploadSuccess').setAttribute('hidden', '');
+  document.getElementById('dataSourceBanner').setAttribute('hidden', '');
+  document.getElementById('uploadZone').classList.remove('upload-zone--loaded');
+  document.getElementById('jsonFileInput').value = '';
+
+  // Treure classes de color dels inputs
+  document.querySelectorAll('.field-input').forEach(input => {
+    input.classList.remove('field-input--real', 'field-input--estimat', 'field-input--calculat');
+    delete input.dataset.jsonSource;
+  });
+
+  // Restaurar valors per defecte
+  handleReset();
+}
+
 /* ────────────── Inicialització ────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -785,6 +981,38 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnSostenible').addEventListener('click', handleModeSostenible);
   document.getElementById('btnActivarSim').addEventListener('click', handleModeSostenible);
 
+  // ── JSON Upload ──
+  const fileInput   = document.getElementById('jsonFileInput');
+  const btnUpload   = document.getElementById('btnUpload');
+  const uploadZone  = document.getElementById('uploadZone');
+  const btnClear    = document.getElementById('btnClearJson');
+
+  // Clic al botó → obre el selector de fitxers
+  btnUpload.addEventListener('click', () => fileInput.click());
+
+  // Fitxer seleccionat via diàleg
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) processarFitxerJSON(e.target.files[0]);
+  });
+
+  // Drag & Drop sobre la zona d'upload
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('upload-zone--drag');
+  });
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('upload-zone--drag');
+  });
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('upload-zone--drag');
+    const fitxer = e.dataTransfer.files[0];
+    if (fitxer) processarFitxerJSON(fitxer);
+  });
+
+  // Botó de netejar JSON
+  btnClear.addEventListener('click', netejarJSON);
+
   // Enter als inputs → calcula
   document.querySelectorAll('.field-input').forEach(input => {
     input.addEventListener('keypress', (e) => {
@@ -793,5 +1021,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   console.log('%c🌿 EcoMesura carregat correctament', 'color: #3d7a55; font-weight: bold; font-size: 14px');
-  console.log('%cCalculadora de Sostenibilitat · Factors estacionals actius', 'color: #6aa67a');
+  console.log('%cCalculadora de Sostenibilitat · Factors estacionals actius + càrrega JSON', 'color: #6aa67a');
 });
