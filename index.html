@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Sostenibilitat · Indicadors de Consum</title>
+  <meta name="description" content="Calculadora d'indicadors de consum i pla de reducció d'impacte ambiental per a centres educatius." />
+
+  <!-- Google Fonts: Playfair Display + Source Sans 3 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js per als gràfics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ===================== CAPÇALERA ===================== -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <div class="header-brand">
+        <span class="brand-icon" aria-hidden="true">🌿</span>
+        <div>
+          <h1 class="brand-title">EcoMesura</h1>
+          <p class="brand-subtitle">Calculadora de Sostenibilitat</p>
+        </div>
+      </div>
+      <nav class="header-nav" aria-label="Navegació principal">
+        <a href="#calculadora" class="nav-link">Calculadora</a>
+        <a href="#resultats" class="nav-link">Resultats</a>
+        <a href="#estrategia" class="nav-link">Estratègia</a>
+        <a href="#simulador" class="nav-link">Simulador</a>
+      </nav>
+      <button class="btn-mode" id="btnSostenible" aria-pressed="false" title="Activar Mode Sostenible">
+        <span class="mode-icon">♻️</span>
+        <span class="mode-label">Mode Sostenible</span>
+      </button>
+    </div>
+    <!-- Barra de mode sostenible actiu -->
+    <div class="mode-banner" id="modeBanner" hidden>
+      ✅ MODE SOSTENIBLE ACTIU — Es mostren els consums amb reducció del 30% aplicada
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" aria-label="Introducció">
+      <div class="hero-bg-shapes" aria-hidden="true">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+      </div>
+      <div class="hero-content">
+        <span class="hero-badge">Projecte Acadèmic · Nivell 10</span>
+        <h2 class="hero-title">Indicadors de Consum<br /><em>i Pla de Reducció</em></h2>
+        <p class="hero-desc">
+          Introdueix les dades base del teu centre i obtén automàticament els 8 indicadors
+          de consum anual i per curs (Sep–Jun), amb estacionalitat real i variabilitat inclosa.
+        </p>
+        <div class="hero-stats" role="list" aria-label="Característiques">
+          <div class="hero-stat" role="listitem">
+            <span class="stat-num">8</span>
+            <span class="stat-lbl">Indicadors</span>
+          </div>
+          <div class="hero-stat" role="listitem">
+            <span class="stat-num">-30%</span>
+            <span class="stat-lbl">Objectiu 3 anys</span>
+          </div>
+          <div class="hero-stat" role="listitem">
+            <span class="stat-num">±5%</span>
+            <span class="stat-lbl">Variabilitat real</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== FORMULARI ===================== -->
+    <section class="section" id="calculadora" aria-labelledby="titol-calc">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Fase 1</span>
+          <h2 class="section-title" id="titol-calc">Dades de Consum Base</h2>
+          <p class="section-desc">Introdueix els valors mensuals mitjans del teu centre educatiu.</p>
+        </div>
+
+        <div class="form-grid">
+
+          <!-- Grup: Energia -->
+          <div class="form-card" data-group="energia">
+            <div class="form-card-header">
+              <span class="form-icon" aria-hidden="true">💡</span>
+              <h3 class="form-card-title">Energia Elèctrica</h3>
+            </div>
+            <div class="form-fields">
+              <div class="field-group">
+                <label for="consumElectric" class="field-label">
+                  Consum elèctric mensual mitjà
+                  <span class="field-unit">(kWh/mes)</span>
+                </label>
+                <input type="number" id="consumElectric" class="field-input"
+                  min="0" step="10" value="2500"
+                  aria-describedby="help-electric" />
+                <small id="help-electric" class="field-help">
+                  Incloure climatització, il·luminació i equipament informàtic.
+                </small>
+              </div>
+              <div class="field-group">
+                <label for="superfície" class="field-label">
+                  Superfície del centre
+                  <span class="field-unit">(m²)</span>
+                </label>
+                <input type="number" id="superfície" class="field-input"
+                  min="0" step="10" value="800" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Grup: Aigua -->
+          <div class="form-card" data-group="aigua">
+            <div class="form-card-header">
+              <span class="form-icon" aria-hidden="true">💧</span>
+              <h3 class="form-card-title">Consum d'Aigua</h3>
+            </div>
+            <div class="form-fields">
+              <div class="field-group">
+                <label for="consumAigua" class="field-label">
+                  Consum d'aigua mensual mitjà
+                  <span class="field-unit">(m³/mes)</span>
+                </label>
+                <input type="number" id="consumAigua" class="field-input"
+                  min="0" step="1" value="45" />
+              </div>
+              <div class="field-group">
+                <label for="persones" class="field-label">
+                  Nombre de persones al centre
+                  <span class="field-unit">(pers.)</span>
+                </label>
+                <input type="number" id="persones" class="field-input"
+                  min="1" step="1" value="120" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Grup: Oficina -->
+          <div class="form-card" data-group="oficina">
+            <div class="form-card-header">
+              <span class="form-icon" aria-hidden="true">📎</span>
+              <h3 class="form-card-title">Material d'Oficina</h3>
+            </div>
+            <div class="form-fields">
+              <div class="field-group">
+                <label for="consumOficina" class="field-label">
+                  Despesa en consumibles d'oficina
+                  <span class="field-unit">(€/mes)</span>
+                </label>
+                <input type="number" id="consumOficina" class="field-input"
+                  min="0" step="5" value="350" />
+              </div>
+              <div class="field-group">
+                <label for="paperReciclatPct" class="field-label">
+                  % de paper reciclat actual
+                  <span class="field-unit">(%)</span>
+                </label>
+                <input type="number" id="paperReciclatPct" class="field-input"
+                  min="0" max="100" step="5" value="20" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Grup: Neteja -->
+          <div class="form-card" data-group="neteja">
+            <div class="form-card-header">
+              <span class="form-icon" aria-hidden="true">🧹</span>
+              <h3 class="form-card-title">Productes de Neteja</h3>
+            </div>
+            <div class="form-fields">
+              <div class="field-group">
+                <label for="consumNeteja" class="field-label">
+                  Despesa en productes de neteja
+                  <span class="field-unit">(€/mes)</span>
+                </label>
+                <input type="number" id="consumNeteja" class="field-input"
+                  min="0" step="5" value="180" />
+              </div>
+              <div class="field-group">
+                <label for="producteEcoPct" class="field-label">
+                  % de productes ecològics actual
+                  <span class="field-unit">(%)</span>
+                </label>
+                <input type="number" id="producteEcoPct" class="field-input"
+                  min="0" max="100" step="5" value="10" />
+              </div>
+            </div>
+          </div>
+
+        </div><!-- .form-grid -->
+
+        <div class="form-actions">
+          <button class="btn-primary" id="btnCalcular" type="button">
+            <span>⚡</span> Calcular Indicadors
+          </button>
+          <button class="btn-secondary" id="btnReset" type="button">
+            <span>↺</span> Reiniciar
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== RESULTATS ===================== -->
+    <section class="section section--dark" id="resultats" aria-labelledby="titol-res" hidden>
+      <div class="container">
+        <div class="section-header section-header--light">
+          <span class="section-tag section-tag--light">Resultats</span>
+          <h2 class="section-title section-title--light" id="titol-res">Anàlisi d'Indicadors</h2>
+          <p class="section-desc section-desc--light" id="descResultats">
+            Basats en estacionalitat real i variabilitat ±5%.
+          </p>
+        </div>
+
+        <!-- 8 Targetes d'indicadors -->
+        <div class="indicators-grid" id="indicatorsGrid" role="list" aria-label="Indicadors de consum">
+          <!-- Es generaran dinàmicament per JS -->
+        </div>
+
+        <!-- Gràfic de distribució mensual -->
+        <div class="chart-row">
+          <div class="chart-card">
+            <h3 class="chart-title">📊 Distribució Mensual — Energia Elèctrica (kWh)</h3>
+            <div class="chart-wrapper">
+              <canvas id="chartElectric" aria-label="Gràfic consum elèctric mensual"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">💧 Distribució Mensual — Aigua (m³)</h3>
+            <div class="chart-wrapper">
+              <canvas id="chartAigua" aria-label="Gràfic consum d'aigua mensual"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-row chart-row--single">
+          <div class="chart-card">
+            <h3 class="chart-title">📦 Distribució Mensual — Oficina + Neteja (€)</h3>
+            <div class="chart-wrapper">
+              <canvas id="chartConsumibles" aria-label="Gràfic consumibles mensuals"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== ESTRATÈGIA ===================== -->
+    <section class="section" id="estrategia" aria-labelledby="titol-est">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Fase 2</span>
+          <h2 class="section-title" id="titol-est">Estratègia de Reducció · 30% en 3 anys</h2>
+          <p class="section-desc">
+            Pla d'acció detallat amb mesures concretes, indicadors mesurables i cronograma.
+          </p>
+        </div>
+
+        <!-- Taula estratègia -->
+        <div class="table-wrapper" role="region" aria-label="Taula d'estratègia de reducció">
+          <table class="strategy-table" aria-describedby="titol-est">
+            <caption class="sr-only">Taula detallada d'objectius, accions, indicadors i cronograma a 3 anys</caption>
+            <thead>
+              <tr>
+                <th scope="col">Àmbit</th>
+                <th scope="col">Objectiu Mesurable</th>
+                <th scope="col">Accions Concretes</th>
+                <th scope="col">Indicador de Seguiment</th>
+                <th scope="col">Any 1</th>
+                <th scope="col">Any 2</th>
+                <th scope="col">Any 3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Àmbit"><span class="table-icon">💡</span> Energia</td>
+                <td data-label="Objectiu">Reduir consum elèctric un 10%/any</td>
+                <td data-label="Accions">
+                  Substitució de lluminàries per LED de baix consum;<br/>
+                  instal·lació de sensors de presència;<br/>
+                  gestió intel·ligent de la climatització (horaris programats).
+                </td>
+                <td data-label="Indicador">kWh/m²/mes · Factura elèctrica mensual</td>
+                <td data-label="Any 1"><span class="pill pill--yellow">–10%</span></td>
+                <td data-label="Any 2"><span class="pill pill--orange">–20%</span></td>
+                <td data-label="Any 3"><span class="pill pill--green">–30%</span></td>
+              </tr>
+              <tr>
+                <td data-label="Àmbit"><span class="table-icon">💧</span> Aigua</td>
+                <td data-label="Objectiu">Reduir consum d'aigua un 10%/any</td>
+                <td data-label="Accions">
+                  Instal·lació de reductors de cabal en aixetes i dutxes;<br/>
+                  recollida d'aigües grises per a regs;<br/>
+                  formació de l'alumnat en ús responsable.
+                </td>
+                <td data-label="Indicador">m³/persona/mes · Lectura comptador mensual</td>
+                <td data-label="Any 1"><span class="pill pill--yellow">–10%</span></td>
+                <td data-label="Any 2"><span class="pill pill--orange">–20%</span></td>
+                <td data-label="Any 3"><span class="pill pill--green">–30%</span></td>
+              </tr>
+              <tr>
+                <td data-label="Àmbit"><span class="table-icon">📎</span> Oficina</td>
+                <td data-label="Objectiu">Reduir despesa en consumibles un 10%/any</td>
+                <td data-label="Accions">
+                  Digitalització de processos administratius (impressió sota demanda);<br/>
+                  compra de paper 100% reciclat i certificat FSC;<br/>
+                  reutilització de cartutxos de tòner.
+                </td>
+                <td data-label="Indicador">€/persona/mes · Inventari mensual de consumibles</td>
+                <td data-label="Any 1"><span class="pill pill--yellow">–10%</span></td>
+                <td data-label="Any 2"><span class="pill pill--orange">–20%</span></td>
+                <td data-label="Any 3"><span class="pill pill--green">–30%</span></td>
+              </tr>
+              <tr>
+                <td data-label="Àmbit"><span class="table-icon">🧹</span> Neteja</td>
+                <td data-label="Objectiu">Reduir despesa en neteja un 10%/any</td>
+                <td data-label="Accions">
+                  Transició a productes de neteja ecològics i concentrats;<br/>
+                  sistemes de microfibra que eliminen necessitat de químics;<br/>
+                  protocol de neteja per zones de freqüència d'ús.
+                </td>
+                <td data-label="Indicador">€/m²/mes · Informe mensual de compres</td>
+                <td data-label="Any 1"><span class="pill pill--yellow">–10%</span></td>
+                <td data-label="Any 2"><span class="pill pill--orange">–20%</span></td>
+                <td data-label="Any 3"><span class="pill pill--green">–30%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Economia Circular -->
+        <div class="ec-section">
+          <div class="ec-header">
+            <span class="ec-icon" aria-hidden="true">♻️</span>
+            <h3 class="ec-title">Economia Circular · Propostes Reals</h3>
+          </div>
+          <div class="ec-grid" role="list">
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">🗑️</div>
+              <h4 class="ec-card-title">Gestió de Residus d'Oficina</h4>
+              <p class="ec-card-desc">
+                Implantació de punts verds per categories (paper, plàstic, tòners). 
+                Acord amb empresa gestora per a recollida mensual i certificat de reciclatge.
+                Objectiu: 80% de residus d'oficina reciclats al final de l'any 1.
+              </p>
+              <span class="ec-card-badge">Residus Zero</span>
+            </article>
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">🚿</div>
+              <h4 class="ec-card-title">Reutilització d'Aigües Grises</h4>
+              <p class="ec-card-desc">
+                Instal·lació de cisterna de recollida per reutilitzar l'aigua de lavabos
+                en el reg de zones ajardinades. Previsió d'estalvi: 15–20 m³/mes al centre.
+              </p>
+              <span class="ec-card-badge">Cicle Tancat</span>
+            </article>
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">☀️</div>
+              <h4 class="ec-card-title">Energia Renovable In Situ</h4>
+              <p class="ec-card-desc">
+                Estudi de viabilitat per a instal·lació de plaques fotovoltaiques a la coberta.
+                Potencial de generació: 30–40% del consum elèctric anual del centre.
+              </p>
+              <span class="ec-card-badge">Autoconsum</span>
+            </article>
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">📦</div>
+              <h4 class="ec-card-title">Compra Responsable i Km 0</h4>
+              <p class="ec-card-desc">
+                Política de compra prioritzant proveïdors locals i productes amb etiqueta ecològica.
+                Reducció de l'empremta del transport i suport a l'economia local.
+              </p>
+              <span class="ec-card-badge">Km 0</span>
+            </article>
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">📱</div>
+              <h4 class="ec-card-title">Digitalització Administrativa</h4>
+              <p class="ec-card-desc">
+                Eliminació progressiva del paper en comunicacions internes: circulars, actes
+                i informes en format digital. Meta: 0 impressions innecessàries a l'any 2.
+              </p>
+              <span class="ec-card-badge">Paper Zero</span>
+            </article>
+
+            <article class="ec-card" role="listitem">
+              <div class="ec-card-icon" aria-hidden="true">🌱</div>
+              <h4 class="ec-card-title">Formació i Cultura Sostenible</h4>
+              <p class="ec-card-desc">
+                Programa anual de sensibilització per a tot el personal i l'alumnat.
+                Creació d'un Comitè Verd amb representants de cada sector de la comunitat educativa.
+              </p>
+              <span class="ec-card-badge">Comunitat</span>
+            </article>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== SIMULADOR ===================== -->
+    <section class="section section--accent" id="simulador" aria-labelledby="titol-sim">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag section-tag--dark">Fase 3</span>
+          <h2 class="section-title" id="titol-sim">Simulador d'Impacte</h2>
+          <p class="section-desc">
+            Activa el Mode Sostenible per veure l'efecte de les mesures sobre els teus indicadors.
+          </p>
+        </div>
+
+        <div class="simulator-panel" id="simulatorPanel">
+          <div class="sim-cta" id="simCta">
+            <div class="sim-cta-icon" aria-hidden="true">♻️</div>
+            <h3 class="sim-cta-title">Activa el Mode Sostenible</h3>
+            <p class="sim-cta-desc">
+              Primer calcula els indicadors base (secció 1) i després activa el mode per veure
+              l'impacte real d'una reducció del 30%.
+            </p>
+            <button class="btn-primary btn-large" id="btnActivarSim" type="button" disabled>
+              ♻️ Activar Mode Sostenible
+            </button>
+          </div>
+
+          <div class="sim-results" id="simResults" hidden>
+            <div class="sim-comparison" id="simComparison" role="list" aria-label="Comparativa base vs sostenible">
+              <!-- Es genera per JS -->
+            </div>
+            <div class="sim-total" id="simTotal">
+              <!-- Resum total d'estalvi -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== PEU ===================== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <p class="footer-brand">🌿 EcoMesura</p>
+      <p class="footer-credits">
+        Projecte acadèmic de sostenibilitat · Calculadora d'Indicadors de Consum
+      </p>
+      <p class="footer-note">Dades calculades amb factors d'estacionalitat real i variabilitat ±5%</p>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
