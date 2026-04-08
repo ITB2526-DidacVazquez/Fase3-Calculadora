@@ -84,7 +84,31 @@
         <div class="section-header">
           <span class="section-tag">Fase 1</span>
           <h2 class="section-title" id="titol-calc">Dades de Consum Base</h2>
-          <p class="section-desc">Introdueix els valors mensuals mitjans del teu centre educatiu.</p>
+          <p class="section-desc">Puja el fitxer JSON del teu centre per omplir automàticament els camps, o introdueix els valors manualment.</p>
+        </div>
+
+        <!-- ── Zona de càrrega JSON ── -->
+        <div class="upload-zone" id="uploadZone" role="region" aria-label="Carregar fitxer JSON">
+          <input type="file" id="jsonFileInput" accept=".json" hidden aria-label="Seleccionar fitxer JSON" />
+          <div class="upload-idle" id="uploadIdle">
+            <span class="upload-icon" aria-hidden="true">📂</span>
+            <p class="upload-title">Carregar dades reals del centre</p>
+            <p class="upload-hint">Arrossega el fitxer <code>dataclean.json</code> aquí o fes clic per seleccionar-lo</p>
+            <button class="btn-upload" id="btnUpload" type="button">Seleccionar fitxer JSON</button>
+          </div>
+          <div class="upload-success" id="uploadSuccess" hidden>
+            <span class="upload-icon" aria-hidden="true">✅</span>
+            <p class="upload-success-title" id="uploadCenterName"></p>
+            <p class="upload-success-date" id="uploadDiagDate"></p>
+            <div class="upload-tags" id="uploadTags"></div>
+            <button class="btn-upload btn-upload--reset" id="btnClearJson" type="button">✕ Treure fitxer</button>
+          </div>
+        </div>
+
+        <!-- ── Avís de font de dades (visible quan JSON carregat) ── -->
+        <div class="data-source-banner" id="dataSourceBanner" hidden>
+          <span>🔬</span>
+          <span id="dataSourceText">Dades carregades automàticament des del diagnòstic ESG.</span>
         </div>
 
         <div class="form-grid">
