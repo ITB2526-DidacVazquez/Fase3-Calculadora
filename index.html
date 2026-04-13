@@ -89,12 +89,12 @@
 
         <!-- ── Zona de càrrega JSON ── -->
         <div class="upload-zone" id="uploadZone" role="region" aria-label="Carregar fitxer JSON">
-          <input type="file" id="jsonFileInput" accept=".json" hidden aria-label="Seleccionar fitxer JSON" />
+          <input type="file" id="jsonFileInput" accept=".json" aria-label="Seleccionar fitxer JSON" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;" />
           <div class="upload-idle" id="uploadIdle">
             <span class="upload-icon" aria-hidden="true">📂</span>
             <p class="upload-title">Carregar dades reals del centre</p>
             <p class="upload-hint">Arrossega el fitxer <code>dataclean.json</code> aquí o fes clic per seleccionar-lo</p>
-            <button class="btn-upload" id="btnUpload" type="button">Seleccionar fitxer JSON</button>
+            <label for="jsonFileInput" class="btn-upload" id="btnUpload" role="button" tabindex="0">Seleccionar fitxer JSON</label>
           </div>
           <div class="upload-success" id="uploadSuccess" hidden>
             <span class="upload-icon" aria-hidden="true">✅</span>
