@@ -107,6 +107,26 @@ const FACTOR_NETEJA = [
   0.95   // Desembre
 ];
 
+/**
+ * Factors mensuals per al manteniment i residus.
+ * Cost molt estable (fix), amb lleugeres pujades a principi i final de curs
+ * per revisions tècniques obligatòries. Fluctuació màxima del ±3%.
+ */
+const FACTOR_MANTENIMENT = [
+  1.05,  // Gener     — revisió calefacció post-Nadal
+  1.00,  // Febrer
+  1.02,  // Març
+  1.00,  // Abril
+  1.03,  // Maig      — revisió aire condicionat pre-estiu
+  0.98,  // Juny
+  0.95,  // Juliol    — reducció activitat
+  0.95,  // Agost     — vacances, manteniment mínim
+  1.08,  // Setembre  — revisió inici de curs (instal·lacions)
+  1.02,  // Octubre
+  1.00,  // Novembre
+  1.05   // Desembre  — revisió fi any
+];
+
 /** Índex dels mesos del curs escolar (Setembre=8 fins a Juny=5, índexos 0-based) */
 const MESOS_CURS = [8, 9, 10, 11, 0, 1, 2, 3, 4, 5]; // Sep–Jun
 
@@ -135,11 +155,12 @@ function factorVariabilitat(v = VARIABILITAT) {
  *
  * @param {number}   baseMensual — Consum base mensual (input usuari)
  * @param {number[]} factors     — Array de 12 factors estacionals
+ * @param {number}   variabilitat — Factor de variació (per defecte ±5%)
  * @returns {number[]} Array de 12 valors mensuals
  */
-function calcularMensual(baseMensual, factors) {
+function calcularMensual(baseMensual, factors, variabilitat = VARIABILITAT) {
   return factors.map(f => {
-    const variació = factorVariabilitat();
+    const variació = factorVariabilitat(variabilitat);
     return Math.round(baseMensual * f * variació * 100) / 100;
   });
 }
@@ -217,16 +238,20 @@ function calcularIndicadors() {
   const aigua     = parseFloat(document.getElementById('consumAigua').value)      || 0;
   const oficina   = parseFloat(document.getElementById('consumOficina').value)    || 0;
   const neteja    = parseFloat(document.getElementById('consumNeteja').value)     || 0;
+  const mant      = parseFloat(document.getElementById('consumManteniment').value)|| 0;
+  const fluctMant = (parseFloat(document.getElementById('fluctuacioMant').value)  || 3) / 100;
   const persones  = parseInt(document.getElementById('persones').value)           || 1;
   const sup       = parseFloat(document.getElementById('superfície').value)       || 1;
   const pctPaper  = parseFloat(document.getElementById('paperReciclatPct').value) || 0;
   const pctEco    = parseFloat(document.getElementById('producteEcoPct').value)   || 0;
 
   // Calcular sèries mensuals amb estacionalitat + variabilitat
-  const electricMensual = calcularMensual(electric, FACTOR_ELECTRIC);
-  const aiguaMensual    = calcularMensual(aigua,    FACTOR_AIGUA);
-  const oficinaMensual  = calcularMensual(oficina,  FACTOR_OFICINA);
-  const netejasMensual  = calcularMensual(neteja,   FACTOR_NETEJA);
+  const electricMensual   = calcularMensual(electric, FACTOR_ELECTRIC);
+  const aiguaMensual      = calcularMensual(aigua,    FACTOR_AIGUA);
+  const oficinaMensual    = calcularMensual(oficina,  FACTOR_OFICINA);
+  const netejasMensual    = calcularMensual(neteja,   FACTOR_NETEJA);
+  // Manteniment: usa la fluctuació personalitzada de l'usuari (per defecte ±3%)
+  const mantMensual       = calcularMensual(mant, FACTOR_MANTENIMENT, fluctMant);
 
   // Calcular totals
   const electricAnual = arrodonir(sumaAnual(electricMensual));
@@ -237,6 +262,9 @@ function calcularIndicadors() {
   const oficinaCurs   = arrodonir(sumaCurs(oficinaMensual));
   const netejaAnual   = arrodonir(sumaAnual(netejasMensual));
   const netejaCurs    = arrodonir(sumaCurs(netejasMensual));
+
+  const mantAnual   = arrodonir(sumaAnual(mantMensual));
+  const mantCurs    = arrodonir(sumaCurs(mantMensual));
 
   // Construir i retornar l'objecte de resultats
   return {
@@ -250,7 +278,8 @@ function calcularIndicadors() {
     aiguaMensual,
     oficinaMensual,
     netejasMensual,
-    // Els 8 indicadors (4 recursos × 2 períodes)
+    mantMensual,
+    // Els 10 indicadors (5 recursos × 2 períodes)
     indicadors: {
       electricAnual,
       electricCurs,
@@ -259,7 +288,9 @@ function calcularIndicadors() {
       oficinaAnual,
       oficinaCurs,
       netejaAnual,
-      netejaCurs
+      netejaCurs,
+      mantAnual,
+      mantCurs
     }
   };
 }
@@ -305,6 +336,14 @@ const DEFINICIONS_INDICADORS = [
   {
     clau: 'netejaCurs', titol: 'Productes de Neteja',
     icona: '🧹', unitat: '€', classe: 'neteja', periode: 'Curs Sep–Jun'
+  },
+  {
+    clau: 'mantAnual', titol: 'Manteniment i Residus',
+    icona: '🔧', unitat: '€', classe: 'manteniment', periode: 'Proper Any'
+  },
+  {
+    clau: 'mantCurs', titol: 'Manteniment i Residus',
+    icona: '🔧', unitat: '€', classe: 'manteniment', periode: 'Curs Sep–Jun'
   }
 ];
 
@@ -485,40 +524,66 @@ function renderitzarGrafics(res, isSos = false) {
  * (una targeta per categoria amb comparativa Base vs Sostenible).
  */
 const CATEGORIES_SIM = [
-  {
-    nom: '💡 Energia Elèctrica',
-    anual: 'electricAnual',
-    curs:  'electricCurs',
-    unitat:'kWh'
-  },
-  {
-    nom: '💧 Consum d\'Aigua',
-    anual: 'aiguaAnual',
-    curs:  'aiguaCurs',
-    unitat:'m³'
-  },
-  {
-    nom: '📎 Material d\'Oficina',
-    anual: 'oficinaAnual',
-    curs:  'oficinaCurs',
-    unitat:'€'
-  },
-  {
-    nom: '🧹 Productes de Neteja',
-    anual: 'netejaAnual',
-    curs:  'netejaCurs',
-    unitat:'€'
-  }
+  { nom: '💡 Energia Elèctrica', anual: 'electricAnual', curs: 'electricCurs', unitat: 'kWh' },
+  { nom: '💧 Consum d\'Aigua',   anual: 'aiguaAnual',    curs: 'aiguaCurs',    unitat: 'm³'  },
+  { nom: '📎 Material d\'Oficina',anual: 'oficinaAnual', curs: 'oficinaCurs',  unitat: '€'   },
+  { nom: '🧹 Productes de Neteja',anual: 'netejaAnual',  curs: 'netejaCurs',   unitat: '€'   },
+  { nom: '🔧 Manteniment i Residus',anual:'mantAnual',   curs: 'mantCurs',     unitat: '€'   }
 ];
 
 /**
- * Renderitza la vista comparativa del simulador.
- * Mostra costat a costat els valors base i els valors amb –30%.
+ * Renderitza la taula de quantificació any a any (requisit b del projecte).
+ * Mostra els valors reals calculats per Any 0 (base), Any 1 (–10%), Any 2 (–20%), Any 3 (–30%).
  *
+ * @param {Object} res — Resultat de calcularIndicadors()
+ */
+function renderitzarTaulaAnys(res) {
+  const { indicadors } = res;
+  const tbody = document.getElementById('simYearsBody');
+
+  const files = [
+    { nom: '💡 Electricitat (any)', clau: 'electricAnual', unitat: 'kWh' },
+    { nom: '💡 Electricitat (curs)', clau: 'electricCurs', unitat: 'kWh' },
+    { nom: '💧 Aigua (any)',         clau: 'aiguaAnual',   unitat: 'm³'  },
+    { nom: '💧 Aigua (curs)',        clau: 'aiguaCurs',    unitat: 'm³'  },
+    { nom: '📎 Oficina (any)',       clau: 'oficinaAnual', unitat: '€'   },
+    { nom: '📎 Oficina (curs)',      clau: 'oficinaCurs',  unitat: '€'   },
+    { nom: '🧹 Neteja (any)',        clau: 'netejaAnual',  unitat: '€'   },
+    { nom: '🧹 Neteja (curs)',       clau: 'netejaCurs',   unitat: '€'   },
+    { nom: '🔧 Manteniment (any)',   clau: 'mantAnual',    unitat: '€'   },
+    { nom: '🔧 Manteniment (curs)',  clau: 'mantCurs',     unitat: '€'   },
+  ];
+
+  tbody.innerHTML = files.map(f => {
+    const base = indicadors[f.clau];
+    const any1 = arrodonir(base * 0.90);
+    const any2 = arrodonir(base * 0.80);
+    const any3 = arrodonir(base * 0.70);
+    const estalvi = arrodonir(base - any3);
+
+    return `
+      <tr>
+        <td data-label="Indicador"><strong>${f.nom}</strong></td>
+        <td data-label="Any 0 (Base)" class="td-base">${formatar(base)} <span class="td-unit">${f.unitat}</span></td>
+        <td data-label="Any 1 (–10%)" class="td-any1">${formatar(any1)} <span class="td-unit">${f.unitat}</span></td>
+        <td data-label="Any 2 (–20%)" class="td-any2">${formatar(any2)} <span class="td-unit">${f.unitat}</span></td>
+        <td data-label="Any 3 (–30%)" class="td-any3">${formatar(any3)} <span class="td-unit">${f.unitat}</span></td>
+        <td data-label="Estalvi total" class="td-estalvi">–${formatar(estalvi)} <span class="td-unit">${f.unitat}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/**
+ * Renderitza la vista comparativa del simulador.
  * @param {Object} res — Resultat base de calcularIndicadors()
  */
 function renderitzarSimulador(res) {
   const { indicadors } = res;
+
+  // Renderitzar taula any a any
+  renderitzarTaulaAnys(res);
+
   const cont = document.getElementById('simComparison');
 
   cont.innerHTML = CATEGORIES_SIM.map(cat => {
@@ -550,14 +615,19 @@ function renderitzarSimulador(res) {
     `;
   }).join('');
 
-  // Totals d'estalvi
-  const totalElAnual   = arrodonir(indicadors.electricAnual * 0.30);
-  const totalAiAnual   = arrodonir(indicadors.aiguaAnual    * 0.30);
-  const totalOfAnual   = arrodonir(indicadors.oficinaAnual  * 0.30);
-  const totalNeAnual   = arrodonir(indicadors.netejaAnual   * 0.30);
+  // Totals d'estalvi (inclou manteniment)
+  const totalElAnual = arrodonir(indicadors.electricAnual * 0.30);
+  const totalAiAnual = arrodonir(indicadors.aiguaAnual    * 0.30);
+  const totalOfAnual = arrodonir(indicadors.oficinaAnual  * 0.30);
+  const totalNeAnual = arrodonir(indicadors.netejaAnual   * 0.30);
+  const totalMaAnual = arrodonir(indicadors.mantAnual     * 0.30);
+  const totalEurosSense = arrodonir(
+    indicadors.oficinaAnual + indicadors.netejaAnual + indicadors.mantAnual
+  );
+  const totalEurosAmbSos = arrodonir(totalEurosSense * 0.70);
 
   document.getElementById('simTotal').innerHTML = `
-    <p class="sim-total-title">♻️ Estalvi Anual Estimat amb Mode Sostenible</p>
+    <p class="sim-total-title">♻️ Estalvi Anual Estimat amb Mode Sostenible (–30%)</p>
     <div class="sim-total-grid">
       <div class="sim-total-item">
         <span class="sim-total-num">–${formatar(totalElAnual)}</span>
@@ -574,6 +644,10 @@ function renderitzarSimulador(res) {
       <div class="sim-total-item">
         <span class="sim-total-num">–${formatar(totalNeAnual, 0)} €</span>
         <span class="sim-total-lbl">estalviats en<br/>productes neteja</span>
+      </div>
+      <div class="sim-total-item">
+        <span class="sim-total-num">–${formatar(totalMaAnual, 0)} €</span>
+        <span class="sim-total-lbl">estalviats en<br/>manteniment</span>
       </div>
     </div>
   `;
@@ -711,10 +785,12 @@ function actualitzarModeSostenible(actiu) {
 /** Handler del botó "Reiniciar" */
 function handleReset() {
   // Restaurar valors per defecte
-  document.getElementById('consumElectric').value  = '2500';
-  document.getElementById('consumAigua').value     = '45';
-  document.getElementById('consumOficina').value   = '350';
-  document.getElementById('consumNeteja').value    = '180';
+  document.getElementById('consumElectric').value   = '2500';
+  document.getElementById('consumAigua').value      = '45';
+  document.getElementById('consumOficina').value    = '350';
+  document.getElementById('consumNeteja').value     = '180';
+  document.getElementById('consumManteniment').value= '220';
+  document.getElementById('fluctuacioMant').value   = '3';
   document.getElementById('persones').value        = '120';
   document.getElementById('superfície').value      = '800';
   document.getElementById('paperReciclatPct').value = '20';
@@ -812,6 +888,11 @@ function mapejatJSON(data) {
   // Es manté el valor per defecte del formulari
   const consumNeteja = null;
 
+  // ── Manteniment i residus (€/mes)
+  // No disponible directament al JSON → estimació basada en superfície
+  // Referència: ~0.25 €/m²/mes per a centres educatius
+  const consumManteniment = Math.round(kWpInstal * 10 * 3 * 0.25);
+
   // ── Nombre de persones
   // Calcular la mitjana d'estudiants per sessió a partir dels 3 grups
   const totalEstudiants = social.length > 0
@@ -832,7 +913,7 @@ function mapejatJSON(data) {
   const pctPaper   = 40;
   const pctEco     = 50;
 
-  return { consumElectric, consumAigua, consumOficina, consumNeteja, persones, superfície, pctPaper, pctEco };
+  return { consumElectric, consumAigua, consumOficina, consumNeteja, consumManteniment, persones, superfície, pctPaper, pctEco };
 }
 
 /**
@@ -846,7 +927,8 @@ function omplirFormulari(valors) {
     { id: 'consumElectric',  valor: valors.consumElectric,  tipus: 'real'     },
     { id: 'consumAigua',     valor: valors.consumAigua,     tipus: 'real'     },
     { id: 'consumOficina',   valor: valors.consumOficina,   tipus: 'real'     },
-    { id: 'consumNeteja',    valor: valors.consumNeteja,    tipus: 'estimat'  },
+    { id: 'consumNeteja',    valor: valors.consumNeteja,       tipus: 'estimat'  },
+    { id: 'consumManteniment',valor:valors.consumManteniment,  tipus: 'estimat'  },
     { id: 'persones',        valor: valors.persones,        tipus: 'calculat' },
     { id: 'superfície',      valor: valors.superfície,      tipus: 'estimat'  },
     { id: 'paperReciclatPct',valor: valors.pctPaper,        tipus: 'calculat' },
