@@ -87,28 +87,13 @@
           <p class="section-desc">Puja el fitxer JSON del teu centre per omplir automàticament els camps, o introdueix els valors manualment.</p>
         </div>
 
-        <!-- ── Zona de càrrega JSON ── -->
-        <div class="upload-zone" id="uploadZone" role="region" aria-label="Carregar fitxer JSON">
-          <input type="file" id="jsonFileInput" accept=".json" aria-label="Seleccionar fitxer JSON" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;" />
-          <div class="upload-idle" id="uploadIdle">
-            <span class="upload-icon" aria-hidden="true">📂</span>
-            <p class="upload-title">Carregar dades reals del centre</p>
-            <p class="upload-hint">Arrossega el fitxer <code>dataclean.json</code> aquí o fes clic per seleccionar-lo</p>
-            <label for="jsonFileInput" class="btn-upload" id="btnUpload" role="button" tabindex="0">Seleccionar fitxer JSON</label>
-          </div>
-          <div class="upload-success" id="uploadSuccess" hidden>
-            <span class="upload-icon" aria-hidden="true">✅</span>
-            <p class="upload-success-title" id="uploadCenterName"></p>
-            <p class="upload-success-date" id="uploadDiagDate"></p>
-            <div class="upload-tags" id="uploadTags"></div>
-            <button class="btn-upload btn-upload--reset" id="btnClearJson" type="button">✕ Treure fitxer</button>
-          </div>
-        </div>
-
-        <!-- ── Avís de font de dades (visible quan JSON carregat) ── -->
-        <div class="data-source-banner" id="dataSourceBanner" hidden>
+        <!-- ── Dades carregades automàticament del diagnòstic ESG ── -->
+        <div class="data-source-banner" id="dataSourceBanner">
           <span>🔬</span>
-          <span id="dataSourceText">Dades carregades automàticament des del diagnòstic ESG.</span>
+          <span>Dades del diagnòstic ESG de l'<strong>Institut Tecnològic de Barcelona</strong> (20/03/2026) · 
+          <span style="color:#2a5c42;font-weight:700">■ verd</span> = dada real del JSON · 
+          <span style="color:#92400e;font-weight:700">■ ambre</span> = estimada · 
+          <span style="color:#1e40af;font-weight:700">■ blau</span> = calculada</span>
         </div>
 
         <div class="form-grid">
@@ -125,8 +110,8 @@
                   Consum elèctric mensual mitjà
                   <span class="field-unit">(kWh/mes)</span>
                 </label>
-                <input type="number" id="consumElectric" class="field-input"
-                  min="0" step="10" value="2500"
+                <input type="number" id="consumElectric" class="field-input field-input--real"
+                  min="0" step="10" value="4724"
                   aria-describedby="help-electric" />
                 <small id="help-electric" class="field-help">
                   Incloure climatització, il·luminació i equipament informàtic.
@@ -137,8 +122,8 @@
                   Superfície del centre
                   <span class="field-unit">(m²)</span>
                 </label>
-                <input type="number" id="superfície" class="field-input"
-                  min="0" step="10" value="800" />
+                <input type="number" id="superfície" class="field-input field-input--estimat"
+                  min="0" step="10" value="928" />
               </div>
             </div>
           </div>
@@ -155,16 +140,16 @@
                   Consum d'aigua mensual mitjà
                   <span class="field-unit">(m³/mes)</span>
                 </label>
-                <input type="number" id="consumAigua" class="field-input"
-                  min="0" step="1" value="45" />
+                <input type="number" id="consumAigua" class="field-input field-input--real"
+                  min="0" step="1" value="20.4" />
               </div>
               <div class="field-group">
                 <label for="persones" class="field-label">
                   Nombre de persones al centre
                   <span class="field-unit">(pers.)</span>
                 </label>
-                <input type="number" id="persones" class="field-input"
-                  min="1" step="1" value="120" />
+                <input type="number" id="persones" class="field-input field-input--calculat"
+                  min="1" step="1" value="66" />
               </div>
             </div>
           </div>
@@ -181,16 +166,16 @@
                   Despesa en consumibles d'oficina
                   <span class="field-unit">(€/mes)</span>
                 </label>
-                <input type="number" id="consumOficina" class="field-input"
-                  min="0" step="5" value="350" />
+                <input type="number" id="consumOficina" class="field-input field-input--real"
+                  min="0" step="5" value="545.22" />
               </div>
               <div class="field-group">
                 <label for="paperReciclatPct" class="field-label">
                   % de paper reciclat actual
                   <span class="field-unit">(%)</span>
                 </label>
-                <input type="number" id="paperReciclatPct" class="field-input"
-                  min="0" max="100" step="5" value="20" />
+                <input type="number" id="paperReciclatPct" class="field-input field-input--calculat"
+                  min="0" max="100" step="5" value="40" />
               </div>
             </div>
           </div>
@@ -207,7 +192,7 @@
                   Despesa en productes de neteja
                   <span class="field-unit">(€/mes)</span>
                 </label>
-                <input type="number" id="consumNeteja" class="field-input"
+                <input type="number" id="consumNeteja" class="field-input field-input--estimat"
                   min="0" step="5" value="180" />
               </div>
               <div class="field-group">
@@ -215,8 +200,8 @@
                   % de productes ecològics actual
                   <span class="field-unit">(%)</span>
                 </label>
-                <input type="number" id="producteEcoPct" class="field-input"
-                  min="0" max="100" step="5" value="10" />
+                <input type="number" id="producteEcoPct" class="field-input field-input--calculat"
+                  min="0" max="100" step="5" value="50" />
               </div>
             </div>
           </div>
@@ -233,8 +218,8 @@
                   Cost fix de manteniment mensual
                   <span class="field-unit">(€/mes)</span>
                 </label>
-                <input type="number" id="consumManteniment" class="field-input"
-                  min="0" step="10" value="220"
+                <input type="number" id="consumManteniment" class="field-input field-input--estimat"
+                  min="0" step="10" value="232"
                   aria-describedby="help-mant" />
                 <small id="help-mant" class="field-help">
                   Inclou reparacions, revisió d'instal·lacions i recollida d'escombraries. Cost previsible amb fluctuació petita (±3%).
