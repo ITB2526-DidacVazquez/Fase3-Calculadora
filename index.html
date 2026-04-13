@@ -221,6 +221,36 @@
             </div>
           </div>
 
+          <!-- Grup: Manteniment i Residus -->
+          <div class="form-card" data-group="manteniment">
+            <div class="form-card-header">
+              <span class="form-icon" aria-hidden="true">🔧</span>
+              <h3 class="form-card-title">Manteniment i Residus</h3>
+            </div>
+            <div class="form-fields">
+              <div class="field-group">
+                <label for="consumManteniment" class="field-label">
+                  Cost fix de manteniment mensual
+                  <span class="field-unit">(€/mes)</span>
+                </label>
+                <input type="number" id="consumManteniment" class="field-input"
+                  min="0" step="10" value="220"
+                  aria-describedby="help-mant" />
+                <small id="help-mant" class="field-help">
+                  Inclou reparacions, revisió d'instal·lacions i recollida d'escombraries. Cost previsible amb fluctuació petita (±3%).
+                </small>
+              </div>
+              <div class="field-group">
+                <label for="fluctuacioMant" class="field-label">
+                  Fluctuació mensual estimada
+                  <span class="field-unit">(%)</span>
+                </label>
+                <input type="number" id="fluctuacioMant" class="field-input"
+                  min="0" max="15" step="1" value="3" />
+              </div>
+            </div>
+          </div>
+
         </div><!-- .form-grid -->
 
         <div class="form-actions">
@@ -462,6 +492,35 @@
           </div>
 
           <div class="sim-results" id="simResults" hidden>
+
+            <!-- ── Taula de quantificació any a any (requisit b) ── -->
+            <div class="sim-years-header">
+              <h3 class="sim-years-title">📊 Quantificació de la Reducció Any a Any</h3>
+              <p class="sim-years-desc">Càlcul real dels valors anuals resultants d'aplicar les mesures del pla (–10% acumulat per any).</p>
+            </div>
+
+            <div class="sim-years-table-wrap" role="region" aria-label="Taula de quantificació any a any">
+              <table class="sim-years-table" id="simYearsTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Indicador</th>
+                    <th scope="col">🔵 Any 0 — Base</th>
+                    <th scope="col">🟡 Any 1 (–10%)</th>
+                    <th scope="col">🟠 Any 2 (–20%)</th>
+                    <th scope="col">🟢 Any 3 (–30%)</th>
+                    <th scope="col">Estalvi total</th>
+                  </tr>
+                </thead>
+                <tbody id="simYearsBody">
+                  <!-- Generat per JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ── Comparativa base vs sostenible (existent) ── -->
+            <div class="sim-years-header" style="margin-top:2.5rem">
+              <h3 class="sim-years-title">🔄 Comparativa Detallada Base vs Mode Sostenible (–30%)</h3>
+            </div>
             <div class="sim-comparison" id="simComparison" role="list" aria-label="Comparativa base vs sostenible">
               <!-- Es genera per JS -->
             </div>
