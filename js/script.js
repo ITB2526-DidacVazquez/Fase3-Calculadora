@@ -784,17 +784,17 @@ function actualitzarModeSostenible(actiu) {
 
 /** Handler del botó "Reiniciar" */
 function handleReset() {
-  // Restaurar valors ITB per defecte
-  document.getElementById('consumElectric').value    = '4724';
-  document.getElementById('consumAigua').value       = '20.4';
-  document.getElementById('consumOficina').value     = '545.22';
-  document.getElementById('consumNeteja').value      = '180';
-  document.getElementById('consumManteniment').value = '232';
+  // Restaurar valors ITB reals del JSON
+  document.getElementById('consumElectric').value    = '6480';
+  document.getElementById('consumAigua').value       = '133.7';
+  document.getElementById('consumOficina').value     = '94.18';
+  document.getElementById('consumNeteja').value      = '60';
+  document.getElementById('consumManteniment').value = '269';
   document.getElementById('fluctuacioMant').value    = '3';
   document.getElementById('persones').value          = '66';
   document.getElementById('superfície').value        = '928';
   document.getElementById('paperReciclatPct').value  = '40';
-  document.getElementById('producteEcoPct').value    = '50';
+  document.getElementById('producteEcoPct').value    = '20';
 
   // Amagar resultats
   mostrar(document.getElementById('resultats'), false);
@@ -848,42 +848,60 @@ function activarReveal() {
    ============================================================ */
 
 const DADES_CENTRE = {
-  center: "Barcelona Technology Institute (Institut Tecnològic de Barcelona)",
-  diagnosis_date: "2026-03-20",
+  center: "Institut Tecnològic de Barcelona (ITB) — Grup ASIXc1",
+  diagnosis_date: "2025-01-22",  // última data disponible al JSON
 
-  // ── Energia: consum total diari × 30 dies = kWh/mes
-  // Font: daily_record.total_consumption_kwh = 157.47 kWh/dia
-  consumElectric: Math.round(157.47 * 30),      // → 4.724 kWh/mes
+  // ── Energia Elèctrica: mitjana dels 22 dies registrats a planta_solar (gen-2025)
+  // consumption_kwh diaris: rang 157–500 kWh/dia, mitjana ≈ 216 kWh/dia
+  // Font: dataclean_final.json → secció "planta_solar" (22 registres, gen-2025)
+  consumElectric: Math.round(216 * 30),   // → 6.480 kWh/mes
 
-  // ── Aigua: fuga nocturna avg 170 L/h × 4h × 30 dies / 1000
-  // Font: water.consumption_range_lh.avg = 170 L/h (01h–05h)
-  consumAigua: Math.round(170 * 4 * 30 / 1000 * 10) / 10,  // → 20.4 m³/mes
+  // ── Aigua: mitjana dels 3 dies complets registrats (25/02, 28/02, 29/02-parcial)
+  // Dia 25/02: suma horària = 4.917 L → 4,917 m³
+  // Dia 28/02: suma horària = 7.319 L → 7,319 m³
+  // Dia 29/02 (parcial, 13h): suma = 3.795 L → extrapol. dia complet ≈ 6.000 L
+  // Mitjana dia lectiu ≈ 6.078 L; × 22 dies lectius/mes / 1000 → ≈ 133,7 m³/mes
+  // Font: dataclean_final.json → secció "aigua"
+  consumAigua: 133.7,
 
-  // ── Material d'oficina: inversió en infraestructura digital mensual
-  // Font: indicator-03 = 545.22 €/mes (O2 + DIGI fibra/mòbil)
-  consumOficina: 545.22,
+  // ── Consumibles d'oficina: total factures reals = 659,23 € en 7 comandes (abr–oct 2024)
+  // Període cobert: abril a octubre → 7 mesos → 659,23 / 7 ≈ 94,18 €/mes
+  // Font: dataclean_final.json → secció "consumibles_oficina"
+  consumOficina: 94.18,
 
-  // ── Productes de neteja: proveïdor certificat ISO 14001, sense factura directa
-  // Estimació: 0.20 €/m² × 928 m² aprox.
-  consumNeteja: 186,
+  // ── Productes de neteja: total factures reals = 719,65 € (juny 2024 + maig 2024)
+  // Comandes: paper secamans, sacs brossa, paper WC, sabó, neteja jardí, transport residus
+  // Ajust bossa hores: –501,60 €. Total net = 719,65 €; estimació ≈ 60 €/mes
+  // Font: dataclean_final.json → secció "neteja_higiene"
+  consumNeteja: 60,
 
-  // ── Manteniment i residus: estimació 0.25 €/m²/mes
-  // Superfície: 30.94 kWp × 10 m²/kWp × 3 plantes ≈ 928 m²
-  consumManteniment: Math.round(30.94 * 10 * 3 * 0.25),    // → 232 €/mes
+  // ── Manteniment i residus: total factures reals = 3.230,97 € en 5 registres
+  // Serveis extraordinaris (575), ferro (132,93), fusta (129,24),
+  // reparació A/C (288), instal·lació elèctrica (1.986), material elèctric (119,8)
+  // Distribució en ~12 mesos → 3.230,97 / 12 ≈ 269 €/mes
+  // Font: dataclean_final.json → secció "manteniment"
+  consumManteniment: 269,
   fluctuacioMant: 3,
 
-  // ── Nombre de persones: mitjana alumnes × 3 grups × 1.20 personal
-  // Sessió mitjana: ~18.5 alumnes × 3 grups = 55 × 1.20 = 66 persones
+  // ── Nombre de persones: mitjana alumnat observat als 3 grups (nov 2024 – gen 2025)
+  // ASIXc1A: ~19,5 alum/sessió | ASIXc1B: ~19,5 alum/sessió | ASIXc1C: ~17,1 alum/sessió
+  // Total alumnat ≈ 56 + estimació personal docent/admin (~10) = 66 persones
+  // Font: dataclean_final.json → secció "impacte_social"
   persones: 66,
 
-  // ── Superfície estimada: kWp instal·lat × 10 m²/kWp × 3 plantes
-  superfície: Math.round(30.94 * 10 * 3),                   // → 928 m²
+  // ── Superfície estimada: capacitat planta solar 30,94 kWp × 10 m²/kWp × 3 plantes
+  // Font: dataclean_final.json → secció "planta_solar" → capacity_kwp = 30,94
+  superfície: Math.round(30.94 * 10 * 3),   // → 928 m²
 
-  // ── % paper reciclat: 140 recàrregues marcadors (indicator-04) → compromís circular
+  // ── % paper reciclat: comandes inclouen recàrregues de marcadors (economia circular)
+  // Presència de recambios/recanvis → hàbit de reutilització → estimació 40%
+  // Font: dataclean_final.json → secció "consumibles_oficina"
   pctPaper: 40,
 
-  // ── % productes ecològics: proveïdor neteja amb ISO 14001
-  pctEco: 50
+  // ── % productes ecològics: factura neteja inclou empreses de servei extern
+  // Sense certificació explícita al JSON → estimació conservadora 20%
+  // Font: dataclean_final.json → secció "neteja_higiene"
+  pctEco: 20
 };
 
 /**
